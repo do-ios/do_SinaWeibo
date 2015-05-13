@@ -6,9 +6,6 @@
 //  Copyright (c) 2015年 DoExt. All rights reserved.
 //
 
-#define kAppKey         @"3353031932"
-
-
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import "doIAppDelegate.h"
