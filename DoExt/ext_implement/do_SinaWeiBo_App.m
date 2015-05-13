@@ -26,9 +26,6 @@
 }
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    NSString *sinaKey = [[doServiceContainer Instance].ModuleExtManage GetThirdAppKey:@"do_SinaWeiBo.plist" :@"do_SinaAppKey"];
-    [WeiboSDK enableDebugMode:YES];
-    [WeiboSDK registerApp:sinaKey];
     return YES;
 }
 - (void)applicationWillResignActive:(UIApplication *)application

@@ -89,6 +89,9 @@
 }
 - (void)login:(NSArray *)parms
 {
+    NSDictionary *_dictParas = [parms objectAtIndex:0];
+    NSString *sinaKey = [doJsonHelper GetOneText:_dictParas :@"appId" :@""];
+    [WeiboSDK registerApp:sinaKey];
     self.scritEngine = [parms objectAtIndex:1];
     //自己的代码实现
     
