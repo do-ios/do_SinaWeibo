@@ -10,6 +10,7 @@
 #define httpMethodType @"GET"
 #define baseUrl @"https://api.weibo.com/2/users/show.json"
 
+
 #import "do_SinaWeiBo_SM.h"
 #import "do_SinaWeiBo_App.h"
 #import "doScriptEngineHelper.h"
@@ -18,6 +19,17 @@
 #import "doJsonHelper.h"
 #import "WeiboSDK.h"
 #import "WeiboUser.h"
+#import "doIOHelper.h"
+#import "doIPage.h"
+
+typedef NS_ENUM(NSInteger, MessageType)
+{
+    ImageTextMessage,
+    HtmlMessage,
+    MusicMessage,
+    MediaMessage,
+    AudioMessage
+};
 
 @interface do_SinaWeiBo_SM() <WBHttpRequestDelegate,WeiboSDKDelegate>
 @property(nonatomic,strong) id<doIScriptEngine> scritEngine;
@@ -84,7 +96,7 @@
         [_result SetResultText:resultStr];
         [self.scritEngine Callback:self.callbackName :_result];
     }];
-
+    
     
 }
 - (void)login:(NSArray *)parms
@@ -113,15 +125,80 @@
 - (void)logout:(NSArray *)parms
 {
     [WeiboSDK logOutWithToken:self.accesstoken delegate:self withTag:nil];
+    self.accesstoken = nil;
 }
 
-- (void)didReceiveResponse:(NSString *)responseResult
+- (void)share:(NSArray *)parms
 {
-    doInvokeResult *_result = [[doInvokeResult alloc]init:self.UniqueKey];
-    [_result SetResultText:responseResult];
-    [self.scritEngine Callback:self.callbackName :_result];
-
+    WBAuthorizeRequest *authRequest = [WBAuthorizeRequest request];
+    authRequest.redirectURI = kRedirectURI;
+    authRequest.scope = @"all";
+    NSDictionary *_dictParas = [parms objectAtIndex:0];
+    self.scritEngine = [parms objectAtIndex:1];
+    self.callbackName = [parms objectAtIndex:2];
+    int type = [doJsonHelper GetOneInteger:_dictParas :@"type" :-1];
+    NSString *title = [doJsonHelper GetOneText:_dictParas :@"title" :@""];
+    NSString *image = [doJsonHelper GetOneText:_dictParas :@"image" :@""];
+    NSString *url = [doJsonHelper GetOneText:_dictParas :@"url" :@""];
+    NSString *summary = [doJsonHelper GetOneText:_dictParas :@"summary" :@""];
+    WBSendMessageToWeiboRequest *request = [WBSendMessageToWeiboRequest requestWithMessage:[self messageToShare:type withTitle:title withImage:image withURL:url withSummary:summary] authInfo:authRequest access_token:self.accesstoken];
+    request.userInfo = @{@"ShareMessageFrom": @"",
+                         @"Other_Info_1": [NSNumber numberWithInt:123],
+                         @"Other_Info_2": @[@"obj1", @"obj2"],
+                         @"Other_Info_3": @{@"key1": @"obj1", @"key2": @"obj2"}};
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [WeiboSDK sendRequest:request];
+    });
 }
+- (WBMessageObject *)messageToShare:(int)type withTitle:(NSString *)title withImage:(NSString *)imageUrl withURL:(NSString *)url withSummary:(NSString *)summary
+{
+    WBMessageObject *message = [WBMessageObject message];
+    message.text = summary;
+    switch (type) {
+        case ImageTextMessage:
+        {
+            WBImageObject *image = [WBImageObject object];
+            //设置图片
+            NSString * imagePath = [doIOHelper GetLocalFileFullPath:_scritEngine.CurrentPage.CurrentApp :imageUrl];
+            image.imageData = [NSData dataWithContentsOfFile:imagePath];
+            message.imageObject = image;
+        }
+            break;
+        case HtmlMessage:
+        {
+            WBWebpageObject *wbWeb = [[WBWebpageObject alloc]init];
+            wbWeb.title = title;
+            wbWeb.webpageUrl = url;
+            message.mediaObject = wbWeb;
+        }
+            break;
+        case AudioMessage:
+        case MusicMessage:
+        {
+            WBMusicObject *wbMusic = [[WBMusicObject alloc]init];
+            wbMusic.title = title;
+            wbMusic.musicUrl = url;
+            message.mediaObject = wbMusic;
+        }
+            break;
+        case MediaMessage:
+        {
+            WBVideoObject *wbVideo = [[WBVideoObject alloc]init];
+            wbVideo.title = title;
+            wbVideo.videoUrl = url;
+            message.mediaObject = wbVideo;
+        }
+            break;
+        default:
+            break;
+    }
+    return message;
+}
+
+
+#pragma -mark -
+#pragma -mark WeiboSDKDelegate协议方法
+
 - (void)didReceiveWeiboResponse:(WBBaseResponse *)response
 {
     if ([response isKindOfClass:[WBAuthorizeResponse class]]) {
@@ -137,9 +214,23 @@
         doInvokeResult *_result = [[doInvokeResult alloc]init:self.UniqueKey];
         [_result SetResultText:result_str];
         [self.scritEngine Callback:self.callbackName :_result];
-
     }
-
+    else if ([response isKindOfClass:[WBSendMessageToWeiboResponse class]])
+    {
+        doInvokeResult *_result;
+        if ([(WBSendMessageToWeiboResponse *)response statusCode] == WeiboSDKResponseStatusCodeSuccess) {
+            _result = [[doInvokeResult alloc]init:self.UniqueKey];
+            [_result SetResultBoolean:YES];
+        }
+        else
+        {
+            _result = [[doInvokeResult alloc]init:self.UniqueKey];
+            [_result SetResultBoolean:NO];
+            
+        }
+        [self.scritEngine Callback:self.callbackName :_result];
+    }
+    
 }
 
 - (void)didReceiveWeiboRequest:(WBBaseRequest *)request
