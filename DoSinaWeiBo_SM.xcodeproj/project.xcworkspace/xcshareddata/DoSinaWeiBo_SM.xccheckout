@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>70EE3A99-C9E7-46AE-8337-B9DAF74D2270</string>
+	<key>IDESourceControlProjectName</key>
+	<string>DoSinaWeiBo_SM</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>3A0EE87BCBA9607B290D781831C8293F7E454EB8</key>
+		<string>https://github.com/do-ios/do_SinaWeibo.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>DoExt/DoSinaWeiBo_SM.xcodeproj</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>3A0EE87BCBA9607B290D781831C8293F7E454EB8</key>
+		<string>../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/do-ios/do_SinaWeibo.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>3A0EE87BCBA9607B290D781831C8293F7E454EB8</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>3A0EE87BCBA9607B290D781831C8293F7E454EB8</string>
+			<key>IDESourceControlWCCName</key>
+			<string>do_SinaWeibo</string>
+		</dict>
+	</array>
+</dict>
+</plist>
