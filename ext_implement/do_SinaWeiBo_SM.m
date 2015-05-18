@@ -77,22 +77,30 @@ typedef NS_ENUM(NSInteger, MessageType)
     NSDictionary *_dictParas = [parms objectAtIndex:0];
     self.scritEngine = [parms objectAtIndex:1];
     //自己的代码实现
-    
     self.callbackName = [parms objectAtIndex:2];
     NSString *uid = [doJsonHelper GetOneText:_dictParas :@"uid" :@""];
     NSString *accesstoken = [doJsonHelper GetOneText:_dictParas :@"accessToken" :@""];
     [WBHttpRequest requestForUserProfile:uid withAccessToken:accesstoken andOtherProperties:nil queue:nil withCompletionHandler:^(WBHttpRequest *httpRequest, id result, NSError *error) {
-        WeiboUser *userResult = (WeiboUser *)result;
-        NSMutableDictionary *resultDict = [NSMutableDictionary dictionary];
-        [resultDict setValue:userResult.userID forKey:@"userID"];
-        [resultDict setValue:userResult.userClass forKey:@"userClass"];
-        [resultDict setValue:userResult.screenName forKey:@"screenName"];
-        [resultDict setValue:userResult.name forKey:@"name"];
-        [resultDict setValue:userResult.province forKey:@"province"];
-        [resultDict setValue:userResult.location forKey:@"location"];
-        [resultDict setValue:userResult.userDescription forKey:@"userDescription"];
-        NSString *resultStr = [doJsonHelper ExportToText:resultDict :YES];
         doInvokeResult *_result = [[doInvokeResult alloc]init:self.UniqueKey];
+        NSString *resultStr ;
+        if(error == nil)
+        {
+            WeiboUser *userResult = (WeiboUser *)result;
+            NSMutableDictionary *resultDict = [NSMutableDictionary dictionary];
+            [resultDict setValue:userResult.userID forKey:@"userID"];
+            [resultDict setValue:userResult.userClass forKey:@"userClass"];
+            [resultDict setValue:userResult.screenName forKey:@"screenName"];
+            [resultDict setValue:userResult.name forKey:@"name"];
+            [resultDict setValue:userResult.province forKey:@"province"];
+            [resultDict setValue:userResult.location forKey:@"location"];
+            [resultDict setValue:userResult.userDescription forKey:@"userDescription"];
+            resultStr = [doJsonHelper ExportToText:resultDict :YES];
+
+        }
+        else
+        {
+            [_result SetResultText:error.description];
+        }
         [_result SetResultText:resultStr];
         [self.scritEngine Callback:self.callbackName :_result];
     }];
@@ -142,7 +150,7 @@ typedef NS_ENUM(NSInteger, MessageType)
     NSString *url = [doJsonHelper GetOneText:_dictParas :@"url" :@""];
     NSString *summary = [doJsonHelper GetOneText:_dictParas :@"summary" :@""];
     WBSendMessageToWeiboRequest *request = [WBSendMessageToWeiboRequest requestWithMessage:[self messageToShare:type withTitle:title withImage:image withURL:url withSummary:summary] authInfo:authRequest access_token:self.accesstoken];
-    request.userInfo = @{@"ShareMessageFrom": @"",
+    request.userInfo = @{@"ShareMessageFrom": @"SendMessageToWeiboViewController",
                          @"Other_Info_1": [NSNumber numberWithInt:123],
                          @"Other_Info_2": @[@"obj1", @"obj2"],
                          @"Other_Info_3": @{@"key1": @"obj1", @"key2": @"obj2"}};
@@ -152,8 +160,15 @@ typedef NS_ENUM(NSInteger, MessageType)
 }
 - (WBMessageObject *)messageToShare:(int)type withTitle:(NSString *)title withImage:(NSString *)imageUrl withURL:(NSString *)url withSummary:(NSString *)summary
 {
-    WBMessageObject *message = [WBMessageObject message];
-    message.text = summary;
+    WBMessageObject *messageObject = [WBMessageObject message];
+    NSString * imagePath;
+    NSData *thumbnailData;
+    if (imageUrl != nil && imageUrl.length > 0) {
+        imagePath = [doIOHelper GetLocalFileFullPath:_scritEngine.CurrentPage.CurrentApp :imageUrl];
+        if (imagePath != nil) {
+            thumbnailData = [NSData dataWithContentsOfFile:imagePath];
+        }
+    }
     switch (type) {
         case ImageTextMessage:
         {
@@ -161,38 +176,48 @@ typedef NS_ENUM(NSInteger, MessageType)
             //设置图片
             NSString * imagePath = [doIOHelper GetLocalFileFullPath:_scritEngine.CurrentPage.CurrentApp :imageUrl];
             image.imageData = [NSData dataWithContentsOfFile:imagePath];
-            message.imageObject = image;
+            messageObject.imageObject = image;
+            messageObject.text = summary;
         }
             break;
         case HtmlMessage:
         {
-            WBWebpageObject *wbWeb = [[WBWebpageObject alloc]init];
+            WBWebpageObject *wbWeb = [WBWebpageObject object];
+            wbWeb.objectID = @"identifierHtml";
+            wbWeb.description = summary;
             wbWeb.title = title;
             wbWeb.webpageUrl = url;
-            message.mediaObject = wbWeb;
+            wbWeb.thumbnailData = thumbnailData;
+            messageObject.mediaObject = wbWeb;
         }
             break;
         case AudioMessage:
         case MusicMessage:
         {
-            WBMusicObject *wbMusic = [[WBMusicObject alloc]init];
+            WBMusicObject *wbMusic = [WBMusicObject object];
+            wbMusic.objectID = @"identifierMusic";
             wbMusic.title = title;
             wbMusic.musicUrl = url;
-            message.mediaObject = wbMusic;
+            wbMusic.thumbnailData = thumbnailData;
+            wbMusic.description = summary;
+            messageObject.mediaObject = wbMusic;
         }
             break;
         case MediaMessage:
         {
-            WBVideoObject *wbVideo = [[WBVideoObject alloc]init];
+            WBVideoObject *wbVideo = [WBVideoObject object];
+            wbVideo.objectID = @"identifierMedia";
             wbVideo.title = title;
             wbVideo.videoUrl = url;
-            message.mediaObject = wbVideo;
+            wbVideo.description = summary;
+            wbVideo.thumbnailData = thumbnailData;
+            messageObject.mediaObject = wbVideo;
         }
             break;
         default:
             break;
     }
-    return message;
+    return messageObject;
 }
 
 
@@ -202,6 +227,7 @@ typedef NS_ENUM(NSInteger, MessageType)
 - (void)didReceiveWeiboResponse:(WBBaseResponse *)response
 {
     if ([response isKindOfClass:[WBAuthorizeResponse class]]) {
+        self.accesstoken = [(WBAuthorizeResponse *)response accessToken] ;
         NSMutableDictionary *responseDict = [NSMutableDictionary dictionary];
         [responseDict setValue:[(WBAuthorizeResponse *)response userID] forKey:@"uid"];
         [responseDict setValue:[(WBAuthorizeResponse *)response accessToken] forKey:@"access_token"];
