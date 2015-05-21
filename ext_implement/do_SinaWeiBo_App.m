@@ -50,12 +50,12 @@ static do_SinaWeiBo_App * instance;
     
 }
 
-- (BOOL)application:(UIApplication *)application handleOpenURL:(NSURL *)url fromThridParty:(NSString *)_id
+- (BOOL)application:(UIApplication *)application handleOpenURL:(NSURL *)url
 {
     return [WeiboSDK handleOpenURL:url delegate:(id<WeiboSDKDelegate>)[doScriptEngineHelper ParseSingletonModule:nil :@"do_SinaWeiBo" ]];
 }
 
-- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation fromThridParty:(NSString *)_id
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
 {   
     return [WeiboSDK handleOpenURL:url delegate:(id<WeiboSDKDelegate>)[doScriptEngineHelper ParseSingletonModule:nil :@"do_SinaWeiBo" ]];
 }
