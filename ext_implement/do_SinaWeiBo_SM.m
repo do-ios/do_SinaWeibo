@@ -7,9 +7,6 @@
 //
 
 #define kRedirectURI @"https://api.weibo.com/oauth2/default.html"
-#define httpMethodType @"GET"
-#define baseUrl @"https://api.weibo.com/2/users/show.json"
-
 
 #import "do_SinaWeiBo_SM.h"
 #import "do_SinaWeiBo_App.h"
@@ -121,10 +118,7 @@ typedef NS_ENUM(NSInteger, MessageType)
     WBAuthorizeRequest *request = [WBAuthorizeRequest request];
     request.redirectURI = kRedirectURI;
     request.scope = @"all";
-    request.userInfo = @{@"SSO_From": @"doRootViewController",
-                         @"Other_Info_1": [NSNumber numberWithInt:123],
-                         @"Other_Info_2": @[@"obj1", @"obj2"],
-                         @"Other_Info_3": @{@"key1": @"obj1", @"key2": @"obj2"}};
+    request.userInfo = nil;
     dispatch_async(dispatch_get_main_queue(), ^{
         [WeiboSDK sendRequest:request];
     });
@@ -138,22 +132,24 @@ typedef NS_ENUM(NSInteger, MessageType)
 
 - (void)share:(NSArray *)parms
 {
-    WBAuthorizeRequest *authRequest = [WBAuthorizeRequest request];
-    authRequest.redirectURI = kRedirectURI;
-    authRequest.scope = @"all";
     NSDictionary *_dictParas = [parms objectAtIndex:0];
     self.scritEngine = [parms objectAtIndex:1];
     self.callbackName = [parms objectAtIndex:2];
+    NSString *sinaKey = [doJsonHelper GetOneText:_dictParas :@"appId" :@""];
+    [WeiboSDK registerApp:sinaKey];
+
     int type = [doJsonHelper GetOneInteger:_dictParas :@"type" :-1];
     NSString *title = [doJsonHelper GetOneText:_dictParas :@"title" :@""];
+    
     NSString *image = [doJsonHelper GetOneText:_dictParas :@"image" :@""];
     NSString *url = [doJsonHelper GetOneText:_dictParas :@"url" :@""];
     NSString *summary = [doJsonHelper GetOneText:_dictParas :@"summary" :@""];
+
+    WBAuthorizeRequest *authRequest = [WBAuthorizeRequest request];
+    authRequest.redirectURI = kRedirectURI;
+    authRequest.scope = @"all";
     WBSendMessageToWeiboRequest *request = [WBSendMessageToWeiboRequest requestWithMessage:[self messageToShare:type withTitle:title withImage:image withURL:url withSummary:summary] authInfo:authRequest access_token:self.accesstoken];
-    request.userInfo = @{@"ShareMessageFrom": @"SendMessageToWeiboViewController",
-                         @"Other_Info_1": [NSNumber numberWithInt:123],
-                         @"Other_Info_2": @[@"obj1", @"obj2"],
-                         @"Other_Info_3": @{@"key1": @"obj1", @"key2": @"obj2"}};
+    request.userInfo = nil;
     dispatch_async(dispatch_get_main_queue(), ^{
         [WeiboSDK sendRequest:request];
     });
