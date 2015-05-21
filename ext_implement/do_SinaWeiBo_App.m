@@ -11,18 +11,19 @@
 #import "doServiceContainer.h"
 #import "doIModuleExtManage.h"
 #import "doScriptEngineHelper.h"
-
+static do_SinaWeiBo_App * instance;
 @interface do_SinaWeiBo_App()
 
 @end
 @implementation do_SinaWeiBo_App
-@synthesize ThridPartyID;
-- (instancetype)init
+@synthesize OpenURLScheme;
+
++ (instancetype)Instance
 {
-    if (self = [super init]) {
-        self.ThridPartyID = @"wb";
+    if (instance == nil) {
+        instance = [[do_SinaWeiBo_App alloc]init];
     }
-    return self;
+    return instance;
 }
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {

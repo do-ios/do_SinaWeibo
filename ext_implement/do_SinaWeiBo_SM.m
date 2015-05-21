@@ -108,6 +108,8 @@ typedef NS_ENUM(NSInteger, MessageType)
 {
     NSDictionary *_dictParas = [parms objectAtIndex:0];
     NSString *sinaKey = [doJsonHelper GetOneText:_dictParas :@"appId" :@""];
+    do_SinaWeiBo_App *sinaApp = [do_SinaWeiBo_App Instance];
+    sinaApp.OpenURLScheme = sinaKey;
     [WeiboSDK registerApp:sinaKey];
     self.scritEngine = [parms objectAtIndex:1];
     //自己的代码实现
