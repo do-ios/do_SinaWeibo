@@ -137,7 +137,7 @@ typedef NS_ENUM(NSInteger, MessageType)
     NSDictionary *_dictParas = [parms objectAtIndex:0];
     self.scritEngine = [parms objectAtIndex:1];
     self.callbackName = [parms objectAtIndex:2];
-    NSString *sinaKey = [doJsonHelper GetOneText:_dictParas :@"appId" :@""];
+    NSString *sinaKey = [doJsonHelper GetOneText:_dictParas :@"appID" :@""];
     [WeiboSDK registerApp:sinaKey];
 
     int type = [doJsonHelper GetOneInteger:_dictParas :@"type" :-1];
