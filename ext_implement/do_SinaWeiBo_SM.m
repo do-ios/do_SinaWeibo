@@ -138,7 +138,7 @@ typedef NS_ENUM(NSInteger, MessageType)
     self.scritEngine = [parms objectAtIndex:1];
     self.callbackName = [parms objectAtIndex:2];
     NSString *sinaKey = [doJsonHelper GetOneText:_dictParas :@"appID" :@""];
-    if (sinaKey.length < 0) {
+    if (sinaKey.length <= 0) {
         [NSException raise:@"SinaWeibo" format:@"share分享时appID参数为空"];
     }
     [WeiboSDK registerApp:sinaKey];
