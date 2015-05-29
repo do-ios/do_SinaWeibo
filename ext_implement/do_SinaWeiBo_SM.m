@@ -141,6 +141,8 @@ typedef NS_ENUM(NSInteger, MessageType)
     if (sinaKey.length <= 0) {
         [NSException raise:@"SinaWeibo" format:@"share分享时appID参数为空"];
     }
+    do_SinaWeiBo_App *sinaApp = [do_SinaWeiBo_App Instance];
+    sinaApp.OpenURLScheme = [NSString stringWithFormat:@"wb%@",sinaKey];
     [WeiboSDK registerApp:sinaKey];
 
     int type = [doJsonHelper GetOneInteger:_dictParas :@"type" :-1];
