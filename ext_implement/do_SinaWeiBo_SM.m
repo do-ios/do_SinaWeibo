@@ -128,7 +128,11 @@ typedef NS_ENUM(NSInteger, MessageType)
 
 - (void)logout:(NSArray *)parms
 {
-    [WeiboSDK logOutWithToken:self.accesstoken delegate:self withTag:nil];
+    self.scritEngine = [parms objectAtIndex:1];
+    self.callbackName = [parms objectAtIndex:2];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [WeiboSDK logOutWithToken:self.accesstoken delegate:self withTag:nil];
+    });
     self.accesstoken = nil;
 }
 
@@ -230,7 +234,8 @@ typedef NS_ENUM(NSInteger, MessageType)
 - (void)didReceiveWeiboResponse:(WBBaseResponse *)response
 {
     if ([response isKindOfClass:[WBAuthorizeResponse class]]) {
-        self.accesstoken = [(WBAuthorizeResponse *)response accessToken] ;
+//        self.accesstoken = [(WBAuthorizeResponse *)response accessToken] ;
+        self.accesstoken = [[NSString alloc]initWithString:[(WBAuthorizeResponse *)response accessToken]];
         NSMutableDictionary *responseDict = [NSMutableDictionary dictionary];
         [responseDict setValue:[(WBAuthorizeResponse *)response userID] forKey:@"uid"];
         [responseDict setValue:[(WBAuthorizeResponse *)response accessToken] forKey:@"access_token"];
@@ -239,8 +244,8 @@ typedef NS_ENUM(NSInteger, MessageType)
         [dateFormat setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
         NSString *dateString = [dateFormat stringFromDate:[(WBAuthorizeResponse *)response expirationDate]];
         [responseDict setValue:dateString forKey:@"expires_in"];
-        NSString *result_str = [doJsonHelper ExportToText:responseDict :YES];
-        doInvokeResult *_result = [[doInvokeResult alloc]init:self.UniqueKey];
+        NSString *result_str = [doJsonHelper ExportToText:responseDict :NO];
+        doInvokeResult *_result = [[doInvokeResult alloc]init];
         [_result SetResultText:result_str];
         [self.scritEngine Callback:self.callbackName :_result];
     }
@@ -260,6 +265,21 @@ typedef NS_ENUM(NSInteger, MessageType)
         [self.scritEngine Callback:self.callbackName :_result];
     }
     
+}
+//登出回调
+- (void)request:(WBHttpRequest *)request didFinishLoadingWithResult:(NSString *)result
+{
+    doInvokeResult *inResult = [[doInvokeResult alloc]init];
+    NSData *JSONData = [result dataUsingEncoding:NSUTF8StringEncoding];
+    NSDictionary *responseJSON = [NSJSONSerialization JSONObjectWithData:JSONData options:NSJSONReadingMutableLeaves error:nil];
+    if ([responseJSON.allKeys containsObject:@"result"]) {
+        [inResult SetResultBoolean:YES];
+    }
+    else
+    {
+        [inResult SetResultBoolean:NO];
+    }
+    [self.scritEngine Callback:self.callbackName :inResult];
 }
 
 - (void)didReceiveWeiboRequest:(WBBaseRequest *)request
