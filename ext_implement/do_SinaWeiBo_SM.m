@@ -133,7 +133,7 @@ typedef NS_ENUM(NSInteger, MessageType)
     dispatch_async(dispatch_get_main_queue(), ^{
         [WeiboSDK logOutWithToken:self.accesstoken delegate:self withTag:nil];
     });
-    self.accesstoken = nil;
+//    self.accesstoken = nil;
 }
 
 - (void)share:(NSArray *)parms
@@ -141,7 +141,7 @@ typedef NS_ENUM(NSInteger, MessageType)
     NSDictionary *_dictParas = [parms objectAtIndex:0];
     self.scritEngine = [parms objectAtIndex:1];
     self.callbackName = [parms objectAtIndex:2];
-    NSString *sinaKey = [doJsonHelper GetOneText:_dictParas :@"appID" :@""];
+    NSString *sinaKey = [doJsonHelper GetOneText:_dictParas :@"appId" :@""];
     if (sinaKey.length <= 0) {
         [NSException raise:@"SinaWeibo" format:@"share分享时appID参数为空"];
     }
@@ -235,7 +235,10 @@ typedef NS_ENUM(NSInteger, MessageType)
 {
     if ([response isKindOfClass:[WBAuthorizeResponse class]]) {
 //        self.accesstoken = [(WBAuthorizeResponse *)response accessToken] ;
-        self.accesstoken = [[NSString alloc]initWithString:[(WBAuthorizeResponse *)response accessToken]];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.accesstoken = [[NSString alloc]initWithString:[(WBAuthorizeResponse *)response accessToken]];
+        });
+
         NSMutableDictionary *responseDict = [NSMutableDictionary dictionary];
         [responseDict setValue:[(WBAuthorizeResponse *)response userID] forKey:@"uid"];
         [responseDict setValue:[(WBAuthorizeResponse *)response accessToken] forKey:@"access_token"];
@@ -271,8 +274,9 @@ typedef NS_ENUM(NSInteger, MessageType)
 {
     doInvokeResult *inResult = [[doInvokeResult alloc]init];
     NSData *JSONData = [result dataUsingEncoding:NSUTF8StringEncoding];
-    NSDictionary *responseJSON = [NSJSONSerialization JSONObjectWithData:JSONData options:NSJSONReadingMutableLeaves error:nil];
-    if ([responseJSON.allKeys containsObject:@"result"]) {
+    NSDictionary *responseJSON = [NSJSONSerialization JSONObjectWithData:JSONData options:NSJSONReadingAllowFragments error:nil];
+    NSString *flags = [responseJSON objectForKey:@"result"];
+    if ([flags isEqualToString:@"true"]) {
         [inResult SetResultBoolean:YES];
     }
     else
