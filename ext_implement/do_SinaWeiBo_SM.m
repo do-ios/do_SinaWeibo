@@ -184,7 +184,7 @@ typedef NS_ENUM(NSInteger, MessageType)
             NSString * imagePath = [doIOHelper GetLocalFileFullPath:_scritEngine.CurrentPage.CurrentApp :imageUrl];
             image.imageData = [NSData dataWithContentsOfFile:imagePath];
             messageObject.imageObject = image;
-            messageObject.text = summary;
+            messageObject.text = title;
         }
             break;
         case HtmlMessage:
