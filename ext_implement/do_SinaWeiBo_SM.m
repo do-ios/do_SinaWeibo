@@ -235,22 +235,32 @@ typedef NS_ENUM(NSInteger, MessageType)
 {
     if ([response isKindOfClass:[WBAuthorizeResponse class]]) {
 //        self.accesstoken = [(WBAuthorizeResponse *)response accessToken] ;
-        dispatch_async(dispatch_get_main_queue(), ^{
-            self.accesstoken = [[NSString alloc]initWithString:[(WBAuthorizeResponse *)response accessToken]];
-        });
-
-        NSMutableDictionary *responseDict = [NSMutableDictionary dictionary];
-        [responseDict setValue:[(WBAuthorizeResponse *)response userID] forKey:@"uid"];
-        [responseDict setValue:[(WBAuthorizeResponse *)response accessToken] forKey:@"access_token"];
-        [responseDict setValue:[(WBAuthorizeResponse *)response refreshToken] forKey:@"refresh_token"];
-        NSDateFormatter* dateFormat = [[NSDateFormatter alloc] init];
-        [dateFormat setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
-        NSString *dateString = [dateFormat stringFromDate:[(WBAuthorizeResponse *)response expirationDate]];
-        [responseDict setValue:dateString forKey:@"expires_in"];
-        NSString *result_str = [doJsonHelper ExportToText:responseDict :NO];
-        doInvokeResult *_result = [[doInvokeResult alloc]init];
-        [_result SetResultText:result_str];
-        [self.scritEngine Callback:self.callbackName :_result];
+        @try {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if ([(WBAuthorizeResponse *)response accessToken]) {
+                    self.accesstoken = [[NSString alloc]initWithString:[(WBAuthorizeResponse *)response accessToken]];
+                }
+                else
+                {
+                    return ;
+                }
+            });
+            
+            NSMutableDictionary *responseDict = [NSMutableDictionary dictionary];
+            [responseDict setValue:[(WBAuthorizeResponse *)response userID] forKey:@"uid"];
+            [responseDict setValue:[(WBAuthorizeResponse *)response accessToken] forKey:@"access_token"];
+            [responseDict setValue:[(WBAuthorizeResponse *)response refreshToken] forKey:@"refresh_token"];
+            NSDateFormatter* dateFormat = [[NSDateFormatter alloc] init];
+            [dateFormat setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
+            NSString *dateString = [dateFormat stringFromDate:[(WBAuthorizeResponse *)response expirationDate]];
+            [responseDict setValue:dateString forKey:@"expires_in"];
+            NSString *result_str = [doJsonHelper ExportToText:responseDict :NO];
+            doInvokeResult *_result = [[doInvokeResult alloc]init];
+            [_result SetResultText:result_str];
+            [self.scritEngine Callback:self.callbackName :_result];
+        } @catch (NSException *exception) {
+            NSLog(@"exce");
+        }
     }
     else if ([response isKindOfClass:[WBSendMessageToWeiboResponse class]])
     {
